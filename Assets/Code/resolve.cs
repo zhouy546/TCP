@@ -64,7 +64,7 @@ public class resolve : MonoBehaviour {
         string send = "the string go through the network via NetWorkStream";
         ccc = System.Text.Encoding.BigEndianUnicode.GetBytes(send);
         stre.Write(ccc, 0, ccc.Length);
-
+        
     }
 
     void ReveiveMessage() {
