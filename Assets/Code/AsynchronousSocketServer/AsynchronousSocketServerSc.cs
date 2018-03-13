@@ -10,6 +10,7 @@ using System;
 public class AsynchronousSocketServerSc : MonoBehaviour {
     public InputField Port,serverName,TextToSend;
     public Text DebugText, richTextBox1;
+    private string debugtex, richtex; 
     private IPAddress myIP = IPAddress.Parse("127.0.0.1");
     private IPEndPoint Myserver;
     private Socket mySocket;
@@ -24,13 +25,13 @@ public class AsynchronousSocketServerSc : MonoBehaviour {
     {
         try
         {
-            IPHostEntry myHost = new IPHostEntry();
-            myHost = Dns.GetHostEntry(serverName.text);
-            string IPstring = myHost.AddressList[0].ToString();
-            myIP = IPAddress.Parse(IPstring);
+           // IPHostEntry myHost = new IPHostEntry();
+          //  myHost = Dns.GetHostEntry(serverName.text);
+         //   string IPstring = myHost.AddressList[0].ToString();
+            myIP = IPAddress.Parse(serverName.text);
         }
         catch {
-            Debug.Log("输入的IP地址格式不正确，请重新输入");
+            debugtex+="输入的IP地址格式不正确，请重新输入";
         }
 
         try
@@ -39,13 +40,13 @@ public class AsynchronousSocketServerSc : MonoBehaviour {
             mySocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             mySocket.Bind(Myserver);
             mySocket.Listen(50);
-            DebugText.text += "主机" + serverName.text + "端口" + Port.name + "开始监听。。。。" + "\n";
+            debugtex += "主机" + serverName.text + "端口" + Port.name + "开始监听。。。。" + "\n";
             Thread thread = new Thread(new ThreadStart(target));
             thread.Start();
 
         }
         catch (Exception e) {
-            DebugText.text += e.Message + "\n";
+            debugtex += e.Message + "\n";
         }
 
     }
@@ -66,7 +67,7 @@ public class AsynchronousSocketServerSc : MonoBehaviour {
 
         StateObject state = new StateObject();
         state.workSocket = handler;
-        DebugText.text += "与客户建立链接" + "\n";
+        debugtex += "与客户建立链接" + "\n";
 
         try {
             byte[] byteDate = System.Text.Encoding.BigEndianUnicode.GetBytes("已经主备好，请通话" + "\n");
@@ -75,7 +76,7 @@ public class AsynchronousSocketServerSc : MonoBehaviour {
 
         }
         catch(Exception e) {
-            DebugText.text += e.Message;
+            debugtex += e.Message;
         }
         Thread thread = new Thread(new ThreadStart(begReceive));
         thread.Start();
@@ -90,7 +91,7 @@ public class AsynchronousSocketServerSc : MonoBehaviour {
         catch (Exception e)
         {
 
-            DebugText.text += e.Message.ToString();
+            debugtex += e.Message.ToString();
         }
     }
 
@@ -108,14 +109,17 @@ public class AsynchronousSocketServerSc : MonoBehaviour {
         int byteesRead = handler.EndReceive(ar);
         state.sb.Append(System.Text.Encoding.BigEndianUnicode.GetString(state.buffer, 0, byteesRead));
         string content = state.sb.ToString();
+        if (content == "") {
+            return;
+        }
         state.sb.Remove(0, content.Length);
-        richTextBox1.text += content + "\n";
-
+        richtex += content + "\n";
+        Debug.Log(content);
         //重新开始读取数据
         tt.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReadCallback), state);
     }
 
-    void SendtheMessage() {
+   public  void SendtheMessage() {
         try
         {
             byte[] byteData = System.Text.Encoding.BigEndianUnicode.GetBytes(TextToSend.text);
@@ -124,24 +128,25 @@ public class AsynchronousSocketServerSc : MonoBehaviour {
         }
         catch (Exception e)
         {
-            DebugText.text+=e.Message;
+            debugtex += e.Message;
         }
     }
 
-    void SropListening() {
+    public void StopListening() {
         try
         {
             mySocket.Close();
-            DebugText.text+= "主机" + serverName.text + "端口" + Port.name + "停止监听。。。。" + "\n";
+            debugtex += "主机" + serverName.text + "端口" + Port.text + "停止监听。。。。" + "\n";
             
         }
         catch{
 
-            DebugText.text += "监听尚未开始，关闭无效";
+            debugtex += "监听尚未开始，关闭无效";
         }
     }
 	// Update is called once per frame
 	void Update () {
-		
+        DebugText.text = debugtex;
+        richTextBox1.text = richtex;
 	}
 }
